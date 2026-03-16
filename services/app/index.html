@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevOps Production Lab</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #e3e8f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background: #22c55e;
+            color: #0f172a;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 25px;
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>DevOps Production Lab - Trigger Test2</h1>
+        <p>Dockerized application running behind AWS ALB</p>
+        <div class="status">Application Status: Healthy</div>
+        <div class="footer">
+            Deployed via Terraform • Image stored in ECR
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,41 @@
+resource "aws_instance" "jenkins" {
+
+  ami                         = "ami-0e3ce61b0fbdbe6ee" # AMI ID
+  instance_type               = "t2.small"
+  subnet_id                   = aws_subnet.public_a.id
+  vpc_security_group_ids      = [aws_security_group.jenkins_sg.id]
+  associate_public_ip_address = false # eip associated by aws_eip.jenkins_ec2.id
+  iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
+  key_name                    = "jenkins"
+
+  user_data = <<-EOF
+#!/bin/bash
+set -eux
+
+sleep 20
+
+ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+
+aws ecr get-login-password --region eu-central-1 | \
+docker login --username AWS --password-stdin $ACCOUNT.dkr.ecr.eu-central-1.amazonaws.com
+
+docker pull $ACCOUNT.dkr.ecr.eu-central-1.amazonaws.com/devops-lab-app:latest
+
+docker run -d \
+  -u root \
+  -p 8080:8080 \
+  -v jenkins_home:/var/jenkins_home \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  --name jenkins \
+  $ACCOUNT.dkr.ecr.eu-central-1.amazonaws.com/devops-lab-app:latest
+
+sleep 60
+
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword > /home/ubuntu/jenkins_pass
+
+EOF
+
+  tags = {
+    Name = "jenkins-server"
+  }
+}
