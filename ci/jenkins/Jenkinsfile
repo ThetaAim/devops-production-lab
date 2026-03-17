@@ -71,6 +71,9 @@ pipeline {
                 sh '''
                 docker tag app-image \
                 $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$GIT_COMMIT_SHORT
+               
+                docker tag app-image \
+                $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:latest
                 '''
             }
         }
@@ -80,6 +83,9 @@ pipeline {
                 sh '''
                 docker push \
                 $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$GIT_COMMIT_SHORT
+
+                docker push \
+                $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:latest
                 '''
             }
         }
