@@ -1,5 +1,5 @@
 jenkins:
-  systemMessage: "Jenkins ready 🚀"
+  systemMessage: "Jenkins ready"
 
   securityRealm:
     local:
@@ -21,3 +21,20 @@ jenkins:
 #               username: "your-user"
 #               password: "your-token"
 
+jobs:
+  - script: >
+      pipelineJob('app-pipeline') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/ThetaAim/devops-production-lab.git')
+                }
+                branch('*/main')
+              }
+            }
+            scriptPath('ci/jenkins/Jenkinsfile')
+          }
+        }
+      }
