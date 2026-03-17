@@ -27,7 +27,6 @@ docker build -t jenkins-devops .
 # docker volume rm jenkins_home 2>/dev/null || true
 
 docker run -d \
-  -u root \
   -p 8080:8080 \
   -p 50000:50000 \
   -v jenkins_home:/var/jenkins_home \

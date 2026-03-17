@@ -1,0 +1,41 @@
+jenkins:
+  systemMessage: "Jenkins ready 🚀"
+
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "admin"
+          password: "admin123"
+
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+# credentials:
+#   system:
+#     domainCredentials:
+#       - credentials:
+#           - usernamePassword:
+#               id: "gitoken"
+#               username: "your-user"
+#               password: "your-token"
+
+jobs:
+  - script: >
+      pipelineJob('app-pipeline') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/ThetaAim/devops-production-lab.git')
+                  // credentials('gitoken')  
+                }
+                branch('*/main')
+              }
+            }
+            scriptPath('ci/jenkins/Jenkinsfile')
+          }
+        }
+      }
