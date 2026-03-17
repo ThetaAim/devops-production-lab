@@ -12,6 +12,8 @@ resource "aws_instance" "jenkins" {
 #!/bin/bash
 set -eux
 
+DOCKER_GID=$(stat -c '%g' /var/run/docker.sock)
+
 apt-get update
 # apt install -y git
 
@@ -31,12 +33,13 @@ docker run -d \
   -p 50000:50000 \
   -v jenkins_home:/var/jenkins_home \
   -v /var/run/docker.sock:/var/run/docker.sock \
+  --group-add $DOCKER_GID \
   --name jenkins \
   jenkins-devops
 
-sleep 60
+# isleep 60
 
-docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword > /home/ubuntu/jenkins_pass
+# docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword > /home/ubuntu/jenkins_pass
 EOF
 
   tags = {
