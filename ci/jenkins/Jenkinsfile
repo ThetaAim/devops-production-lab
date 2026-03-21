@@ -56,6 +56,21 @@ pipeline {
                 '''
             }
         }
+        
+        stage('Test Build') {
+          steps {
+           sh '''
+             docker rm -f test-app || true
+             docker run -d -p 8081:80 --name test-app app-image
+             sleep 15
+             curl -f http://localhost:8081 || exit 1
+             
+             docker rm -f test-app
+             '''   
+           
+          }
+        }   
+        
 
         stage('Login to ECR') {
             steps {
