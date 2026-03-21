@@ -1,76 +1,14 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevOps Production Lab</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DevOps App</title>
+  </head>
 
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
+  <body>
+    <div id="root"></div>
 
-        .card {
-            background: #1e293b;
-            padding: 40px;
-            border-radius: 16px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            width: 400px;
-        }
-
-        h1 {
-            margin-bottom: 10px;
-        }
-
-        .status {
-            margin-top: 20px;
-            padding: 12px;
-            border-radius: 8px;
-            background: #22c55e;
-            color: #022c22;
-            font-weight: bold;
-        }
-
-        .meta {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #94a3b8;
-        }
-
-        .commit {
-            margin-top: 10px;
-            font-size: 13px;
-            color: #38bdf8;
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="card">
-    <h1>DevOps Production Lab</h1>
-    <p>Dockerized app behind AWS ALB</p>
-
-    <div class="status">
-        Application Status: Healthy ✅
-    </div>
-
-    <div class="meta">
-        Deployed via Jenkins + ECR
-    </div>
-
-    <div class="commit">
-        Version: v2 (Pipeline Trigger Test)
-    </div>
-</div>
-
-</body>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>

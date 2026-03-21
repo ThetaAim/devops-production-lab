@@ -1,0 +1,60 @@
+#root {
+  border: none;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.container {
+  text-align: center;
+  padding-top: 80px;
+  min-height: 100vh;
+  border: none;
+}
+
+.title {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  color: #94a3b8;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 12px;
+  width: 320px;
+  margin: 0 auto 20px;
+}
+
+.status {
+  color: #22c55e;
+  font-weight: bold;
+}
+
+.button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: #38bdf8;
+  color: #0f172a;
+}
+
+.button:hover {
+  background: #0ea5e9;
+}
+
+.footer {
+  margin-top: 30px;
+  color: #94a3b8;
+  font-size: 14px;
+}
