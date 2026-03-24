@@ -66,8 +66,8 @@ pipeline {
              --network app-net \
              app-image
              
-             for i in {1..20}; do
-               if curl -s http://test-app > /dev/null; then
+             for i in {1..10}; do
+               if curl -sf http://test-app > /dev/null; then
                  echo "App is ready"
                  exit 0
                fi
