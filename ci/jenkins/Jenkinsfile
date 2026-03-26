@@ -48,19 +48,6 @@ pipeline {
                     
                     env.ALB_DNS = "devops-lab-alb-1917788526.eu-central-1.elb.amazonaws.com"
 
-                    env.ALB_DNS2 = sh(
-                    script: """aws elbv2 describe-load-balancers \
-                    --query "LoadBalancers[?LoadBalancerName=='devops-lab-alb'].DNSName | [0]" \
-                    --output text""",
-                    returnStdout: true
-                    ).trim()
-                    
-                    if (!env.ALB_DNS) {
-                    error("Failed to fetch ALB_DNS") 
-                    }                    
-                    echo "ALB DNS: ${env.ALB_DNS}"
-                    
-
                 }
             }
         }
