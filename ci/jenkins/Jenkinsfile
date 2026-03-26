@@ -136,9 +136,9 @@ pipeline {
         stage('Deploy via SSM') {
             steps {
                 sh """
-                aws ssm send-command \
-                --targets "Key=tag:Role,Values=app" \
-                --document-name "AWS-RunShellScript" \                  
+                aws ssm send-command 
+                --targets "Key=tag:Role,Values=app" 
+                --document-name "AWS-RunShellScript"                   
                 --parameters commands='[
                    "docker pull ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${GIT_COMMIT_SHORT}",
                    "docker stop devops-app || true",
