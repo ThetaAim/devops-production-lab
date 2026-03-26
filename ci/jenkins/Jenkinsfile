@@ -47,9 +47,7 @@ pipeline {
                     ).trim()
                     
                     env.ALB_DNS = sh(
-                      script: """aws elbv2 describe-load-balancers \
-                      --query "LoadBalancers[?LoadBalancerName=='devops-lab-alb'].DNSName | [0]"
-                      --output text""",
+                      script: """aws elbv2 describe-load-balancers --query "LoadBalancers[?LoadBalancerName=='devops-lab-alb'].DNSName | [0]" --output text""",
                       returnStdout: true
                     ).trim()
                 }
