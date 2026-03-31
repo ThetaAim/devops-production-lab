@@ -128,7 +128,7 @@ pipeline {
                 --targets "Key=tag:Role,Values=app" \
                 --document-name "AWS-RunShellScript" \
                 --parameters commands='[
-                  "PREV_IMAGE=\\$(docker inspect --format='\''{{.Config.Image}}'\'' devops-app 2>/dev/null || echo none)",
+                  "PREV_IMAGE=\\$(docker inspect devops-app --format={{.Config.Image}} 2>/dev/null || echo none)",
                   "echo \\$PREV_IMAGE > /tmp/prev_image",
 
                   "docker pull ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${GIT_COMMIT_SHORT}",
