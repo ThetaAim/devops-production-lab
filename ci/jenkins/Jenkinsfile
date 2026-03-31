@@ -133,7 +133,7 @@ pipeline {
                    
                 aws ssm send-command --targets "Key=tag:Role,Values=app" --document-name "AWS-RunShellScript" --parameters commands='[
                    "PREV_IMAGE=$(docker inspect --format='\''{{.Config.Image}}'\'' devops-app 2>/dev/null || echo none)",
-                   "echo $PREV_IMAGE > /tmp/prev_image",
+                   "echo '$PREV_IMAGE' > /tmp/prev_image",
                    "docker pull '${ACCOUNT_ID}'.dkr.ecr.'${AWS_REGION}'.amazonaws.com/'${ECR_REPO}':'${GIT_COMMIT_SHORT}'",
                    "docker stop devops-app || true",
                    "docker rm devops-app || true",
