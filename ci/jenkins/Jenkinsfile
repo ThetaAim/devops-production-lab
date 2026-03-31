@@ -130,6 +130,9 @@ pipeline {
             steps {
                 sh """
                 aws ssm send-command --targets "Key=tag:Role,Values=app" --document-name "AWS-RunShellScript" --parameters commands='[
+                   "PREV_IMAGE=\\$(docker inspect --format='\''{{.Config.Image}}'\'' devops-app 2>/dev/null || echo \"none\")",
+                   "echo \\$PREV_IMAGE > /tmp/prev_image",
+                   
                    "docker pull ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${GIT_COMMIT_SHORT}",
                    "docker stop devops-app || true",
                    "docker rm devops-app || true",
@@ -149,6 +152,13 @@ pipeline {
                exit 0
              else
                echo "Health failed"
+               aws ssm send-command --targets "Key=tag:Role,Values=app" --document-name "AWS-RunShellScript" --parameters commands='[
+               
+                 "PREV=\\$(cat /tmp/prev_image)",
+                 "docker stop devops-app || true",
+                 "docker rm devops-app || true",
+                 "docker run -d --name devops-app -p 80:80 \\$PREV" 
+               ]'
                exit 1
                fi
      
