@@ -45,10 +45,10 @@ pipeline {
                         script: "aws sts get-caller-identity --query Account --output text",
                         returnStdout: true
                     ).trim()
-                    
+
                     env.ALB_DNS = sh(
-                      script: """aws elbv2 describe-load-balancers --query "LoadBalancers[?LoadBalancerName=='devops-lab-alb'].DNSName | [0]" --output text""",
-                      returnStdout: true
+                        script: """aws elbv2 describe-load-balancers --query "LoadBalancers[?LoadBalancerName=='devops-lab-alb'].DNSName | [0]" --output text""",
+                        returnStdout: true
                     ).trim()
                 }
             }
@@ -61,37 +61,35 @@ pipeline {
                 '''
             }
         }
-        
+
         stage('Test Build') {
-          steps {
-           sh '''
-             docker stop test-app || true
-             docker rm -f test-app || true
-             docker run -d \
-             --name test-app \
-             --network app-net \
-             app-image:${GIT_COMMIT_SHORT}
-             
-             sleep 5
-             for i in {1..10}; do
-               if curl -sf http://test-app > /dev/null; then
-                 echo "App is ready"
-                 docker rm -f test-app || true
-                 exit 0
-               fi
-               sleep 1
-             done
-             
-               echo "App failed to start"
-               docker logs test-app
-               docker rm -f test-app || true
-               exit 1
-             
-             '''   
-           
-          }
-        }   
-        
+            steps {
+                sh '''
+                docker stop test-app || true
+                docker rm -f test-app || true
+                docker run -d \
+                  --name test-app \
+                  --network app-net \
+                  app-image:${GIT_COMMIT_SHORT}
+
+                sleep 5
+
+                for i in {1..10}; do
+                  if curl -sf http://test-app > /dev/null; then
+                    echo "App is ready"
+                    docker rm -f test-app || true
+                    exit 0
+                  fi
+                  sleep 1
+                done
+
+                echo "App failed to start"
+                docker logs test-app
+                docker rm -f test-app || true
+                exit 1
+                '''
+            }
+        }
 
         stage('Login to ECR') {
             steps {
@@ -107,7 +105,7 @@ pipeline {
                 sh '''
                 docker tag app-image:$GIT_COMMIT_SHORT \
                 $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$GIT_COMMIT_SHORT
-               
+
                 docker tag app-image:$GIT_COMMIT_SHORT \
                 $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:latest
                 '''
@@ -117,56 +115,54 @@ pipeline {
         stage('Push image') {
             steps {
                 sh '''
-                docker push \
-                $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$GIT_COMMIT_SHORT
-
-                docker push \
-                $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:latest
+                docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$GIT_COMMIT_SHORT
+                docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:latest
                 '''
             }
         }
-        
+
         stage('Deploy via SSM') {
             steps {
                 sh """
-                aws ssm send-command --targets "Key=tag:Role,Values=app" --document-name "AWS-RunShellScript" --parameters commands='[
-                   "PREV_IMAGE=\\$(docker inspect --format='\''{{.Config.Image}}'\'' devops-app 2>/dev/null || echo "none")",
-                   "echo \\$PREV_IMAGE > /tmp/prev_image",
-                   
-                   "docker pull ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${GIT_COMMIT_SHORT}",
-                   "docker stop devops-app || true",
-                   "docker rm devops-app || true",
-                   "docker run -d --name devops-app -p 80:80 ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${GIT_COMMIT_SHORT}"
-                   ]'        
-                  """
+                aws ssm send-command \
+                --targets "Key=tag:Role,Values=app" \
+                --document-name "AWS-RunShellScript" \
+                --parameters commands='[
+                  "PREV_IMAGE=\\$(docker inspect --format='\''{{.Config.Image}}'\'' devops-app 2>/dev/null || echo none)",
+                  "echo \\$PREV_IMAGE > /tmp/prev_image",
+
+                  "docker pull ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${GIT_COMMIT_SHORT}",
+                  "docker stop devops-app || true",
+                  "docker rm devops-app || true",
+                  "docker run -d --name devops-app -p 80:80 ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${GIT_COMMIT_SHORT}"
+                ]'
+                """
             }
         }
 
+        stage('Verify Health') {
+            steps {
+                sh '''
+                if curl -fsS --max-time 5 --retry 20 http://$ALB_DNS/health > /dev/null; then
+                  echo "Health OK"
+                  exit 0
+                else
+                  echo "Health failed"
 
-        stage('Verify Health'){
-         steps {
-             sh '''
-             
-             if curl -fsS --max-time 3 --retry 20 http://${ALB_DNS}/health > /dev/null; then
-               echo "Health OK"
-               exit 0
-             else
-               echo "Health failed"
-               aws ssm send-command --targets "Key=tag:Role,Values=app" --document-name "AWS-RunShellScript" --parameters commands='[
-               
-                 "PREV=$(cat /tmp/prev_image)",
-                 "docker stop devops-app || true",
-                 "docker rm devops-app || true",
-                 "docker run -d --name devops-app -p 80:80 $PREV" 
-               ]'
-               exit 1
-               fi
-     
-               '''
-       
-         }
-         
-    
+                  aws ssm send-command \
+                  --targets "Key=tag:Role,Values=app" \
+                  --document-name "AWS-RunShellScript" \
+                  --parameters commands='[
+                    "PREV=$(cat /tmp/prev_image)",
+                    "docker stop devops-app || true",
+                    "docker rm devops-app || true",
+                    "if [ \\"$PREV\\" != \\"none\\" ]; then docker run -d --name devops-app -p 80:80 $PREV; fi"
+                  ]'
+
+                  exit 1
+                fi
+                '''
+            }
         }
     }
 }
