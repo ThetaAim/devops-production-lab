@@ -148,7 +148,7 @@ pipeline {
          steps {
              sh '''
              
-             if curl -fsS --max-time 3 --retry 3 http://${ALB_DNS}/health > /dev/null; then
+             if curl -f --max-time 3 --retry 3 http://${ALB_DNS}/health > /dev/null; then
                echo "Health OK"
                exit 0
              else
