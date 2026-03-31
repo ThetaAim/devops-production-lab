@@ -145,7 +145,7 @@ pipeline {
 
         stage('Verify Health'){
          steps {
-             sh """
+             sh '''
              
              if curl -fsS --max-time 3 --retry 20 http://${ALB_DNS}/health > /dev/null; then
                echo "Health OK"
@@ -162,7 +162,7 @@ pipeline {
                exit 1
                fi
      
-               """
+               '''
        
          }
          
