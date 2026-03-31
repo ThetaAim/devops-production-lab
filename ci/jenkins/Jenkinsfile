@@ -132,7 +132,7 @@ pipeline {
                    
                    
                 aws ssm send-command --targets "Key=tag:Role,Values=app" --document-name "AWS-RunShellScript" --parameters commands='[
-                   "docker pull '${ACCOUNT_ID}'.dkr.ecr.'${AWS_REGION}'.amazonaws.com/'${ECR_REPO}':'${GIT_COMMIT_SHORT}'",
+                   "docker pull '$ACCOUNT_ID'.dkr.ecr.'$AWS_REGION'.amazonaws.com/'$ECR_REPO':'$GIT_COMMIT_SHORT'",
                    "docker stop devops-app || true",
                    "docker rm devops-app || true",
                    "docker run -d --name devops-app -p 80:80 '${ACCOUNT_ID}'.dkr.ecr.'${AWS_REGION}'.amazonaws.com/'${ECR_REPO}':'${GIT_COMMIT_SHORT}'"
