@@ -86,7 +86,10 @@ resource "aws_iam_policy" "ssm_send_command" {
       {
         Effect = "Allow"
         Action = [
-          "ssm:SendCommand"
+          "ssm:SendCommand",
+          "ssm:ListCommandInvocations",
+          "ec2:DescribeTags",
+          "ssm:GetCommandInvocation"
         ]
         Resource = "*"
       }
