@@ -142,16 +142,6 @@ pipeline {
         }
 
          
-        stage('Wait for Deploy') {
-            steps {
-                sh '''
-                    COMMAND_ID=$(cat /tmp/ssm_command_id)
-                    aws ssm wait command-executed --command-id $COMMAND_ID
-                    echo "Deploy confirmed"
-                '''
-            }
-        }
-
          stage('Verify Health') {
              steps {
                  sh '''
@@ -160,9 +150,10 @@ pipeline {
                  else
                      echo "Health failed - rolling back"
                      aws ssm send-command --targets "Key=tag:Role,Values=app" --document-name "AWS-RunShellScript" --region $AWS_REGION --parameters commands='[
+                         "PREV=$(cat /tmp/prev_image)",
                          "docker stop devops-app || true",
                          "docker rename devops-app devops-app-broken-$(date +%s) || docker rm -f devops-app || true",
-                         "docker run -d --name devops-app -p 80:80 $(cat /tmp/prev_image)"
+                         "docker run -d --name devops-app -p 80:80 $PREV"
                      ]'
                      exit 1
                  fi
