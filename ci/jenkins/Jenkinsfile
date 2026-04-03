@@ -132,9 +132,9 @@ pipeline {
                 aws ssm send-command --targets "Key=tag:Role,Values=app" --document-name "AWS-RunShellScript" --parameters commands='[
                    "PREV_IMAGE=$(docker inspect --format='\''{{.Config.Image}}'\'' devops-app 2>/dev/null || echo none)",
                    "echo $PREV_IMAGE > /tmp/prev_image",
-                   "docker pull '${ACCOUNT_ID}'.dkr.ecr.'${AWS_REGION}'.amazonaws.com/'${ECR_REPO}':'${GIT_COMMIT_SHORT}'",
                    "docker stop devops-app || true",
-                   "docker rm devops-app || true",
+                   "docker rename devops-app devops-app-$(date +%s) || docker rm -f devops-app || true",
+                   "docker pull '${ACCOUNT_ID}'.dkr.ecr.'${AWS_REGION}'.amazonaws.com/'${ECR_REPO}':'${GIT_COMMIT_SHORT}'",
                    "docker run -d --name devops-app -p 80:80 '${ACCOUNT_ID}'.dkr.ecr.'${AWS_REGION}'.amazonaws.com/'${ECR_REPO}':'${GIT_COMMIT_SHORT}'"
                    ]' --output text --query "Command.CommandId" > /tmp/ssm_command_id
                   '''
@@ -167,7 +167,7 @@ pipeline {
                      echo "Health failed - rolling back"
                      aws ssm send-command --targets "Key=tag:Role,Values=app" --document-name "AWS-RunShellScript" --region $AWS_REGION --parameters commands='[
                          "docker stop devops-app || true",
-                         "docker rm devops-app || true",
+                         "docker rename devops-app devops-app-broken-$(date +%s) || docker rm -f devops-app || true",
                          "docker run -d --name devops-app -p 80:80 $(cat /tmp/prev_image)"
                      ]'
                      exit 1
