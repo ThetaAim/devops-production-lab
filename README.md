@@ -47,54 +47,54 @@ These tags are used by AWS SSM to target instances dynamically.
 ## Pipeline Flow
 
 ### 1. Checkout
-Pulls latest code from GitHub.
+Pulls the latest code from GitHub.
 
 ### 2. Change Detection
-Pipeline runs only when changes occur in `services/app`.
+The pipeline runs only when changes occur in `services/app`.
 
 ### 3. Build
-Builds Docker image tagged with commit hash.
+Builds a Docker image tagged with the commit hash.
 
 ### 4. Test
-Runs container in isolated Docker network:
+Runs a container in an isolated Docker network:
 
 ```bash
 docker run -d --name test-app --network app-net app-image
 ```
 
-Checks readiness:
+Validates service readiness:
 
 ```bash
 curl -sf http://test-app
 ```
 
 ### 5. Push
-Pushes image to Amazon ECR:
-- Commit tag  
+Pushes the image to Amazon ECR:
+- Commit-based tag  
 - `latest` tag  
 
 ### 6. Deploy
 - Uses AWS SSM with tag-based targeting  
-- Stops current container  
-- Pulls new image  
-- Starts updated container  
-- Saves previous image for rollback  
+- Stops the current container  
+- Pulls the new image  
+- Starts the updated container  
+- Saves the previous image for rollback  
 
 ### 7. Health Check
-Verified through ALB:
+Verified through the ALB:
 
 ```
 GET /health
 ```
 
-Uses retry logic to allow for application startup.
+Uses retry logic to handle application startup time.
 
 ### 8. Rollback
-If health check fails:
-- Renames the current container (for traceability)
-- Stops broken container  
-- Restores previous image  
-- Restarts application  
+If the health check fails:
+- Renames the current container (for traceability)  
+- Stops the failed container  
+- Restores the previous image  
+- Restarts the application  
 
 ---
 
@@ -112,13 +112,13 @@ No reliance on localhost or static IPs.
 - Deployment uses SSM without orchestration  
 - Rollback is local per instance  
 - No zero-downtime deployment  
-- ALB may route to instances during restart  
+- ALB may route traffic to instances during restart  
 
 ---
 
 ## Future Improvements
 
-- Rolling / blue-green deployment  
+- Rolling or blue/green deployment  
 - Migration to ECS or Kubernetes  
 - Centralized rollback management  
 - Monitoring and alerting  
