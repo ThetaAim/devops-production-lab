@@ -1,5 +1,5 @@
 resource "aws_instance" "ec2_micro_ecr" {
-  count = 1
+  count = 2
 
   ami           = "ami-0e3ce61b0fbdbe6ee" # Self made Image with Packer
   instance_type = "t3.micro"
@@ -20,26 +20,6 @@ ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
 aws ecr get-login-password --region eu-central-1 \
 | docker login --username AWS \
 --password-stdin $ACCOUNT.dkr.ecr.eu-central-1.amazonaws.com
-
-# until docker pull $ACCOUNT.dkr.ecr.eu-central-1.amazonaws.com/devops-lab-app:latest
-# do
-#  echo "waiting for first image..."
-#  sleep 30
-# done
-
-# docker run -d \
-# --name devops-app \
-# --restart unless-stopped \
-# -p 80:80 \
-# $ACCOUNT.dkr.ecr.eu-central-1.amazonaws.com/devops-lab-app:latest
-
-
-# docker run -d \
-# --name watchtower \
-# --restart unless-stopped \
-# -v /var/run/docker.sock:/var/run/docker.sock \
-# -v /root/.docker/config.json:/config.json \
-# containrrr/watchtower devops-app --interval 60 --cleanup
 
 EOF
 
