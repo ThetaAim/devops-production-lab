@@ -1,118 +1,145 @@
 # 🚀 DevOps CI/CD Pipeline with Jenkins, Docker & AWS
 
+---
+
 ![Docker](https://img.shields.io/badge/Docker-Containerized-blue?logo=docker)
 ![Jenkins](https://img.shields.io/badge/Jenkins-CI%2FCD-red?logo=jenkins)
 ![AWS](https://img.shields.io/badge/AWS-Cloud-orange?logo=amazon-aws)
 ![Status](https://img.shields.io/badge/Build-Passing-brightgreen)
 
----
-
 ## Overview
-This project demonstrates a **production-like CI/CD pipeline** that builds, tests, and deploys a containerized application using **Jenkins, Docker, and AWS**.
+This project demonstrates a production-style CI/CD pipeline that builds, tests, deploys, and validates a containerized application using Jenkins, Docker, and AWS.
+
+Infrastructure is fully provisioned using Terraform.
 
 ---
 
 ## Architecture
 
 ```
-Developer → Git → Jenkins (Docker) → Build Image → Push to ECR → EC2 → ALB → Users
+Developer → GitHub → Jenkins → Docker → Amazon ECR → EC2 → ALB → Users
 ```
-
-### Components
-- **Jenkins** – runs inside Docker and orchestrates the pipeline  
-- **Docker** – builds and runs application containers  
-- **AWS ECR** – stores versioned images  
-- **EC2** – hosts the running containers  
-- **ALB (Application Load Balancer)** – performs health checks and routes traffic  
 
 ---
 
-## 🔄 Pipeline Flow
+## Infrastructure (Terraform)
 
-### 1. Build
-Jenkins builds a Docker image.
+Infrastructure is defined and provisioned using Terraform:
 
-### 2. Test
-Runs a temporary container inside a custom network:
+- VPC with public and private subnets  
+- NAT Gateway for private instances  
+- EC2 instances running Docker  
+- Application Load Balancer (ALB)  
+- Target Group with health checks  
+- IAM roles for EC2 (SSM + ECR access)  
+- Security Groups for controlled traffic  
+
+Deployment instances are tagged:
+
+```
+Role = app
+```
+
+These tags are used by AWS SSM to target instances dynamically.
+
+---
+
+## Pipeline Flow
+
+### 1. Checkout
+Pulls latest code from GitHub.
+
+### 2. Change Detection
+Pipeline runs only when changes occur in `services/app`.
+
+### 3. Build
+Builds Docker image tagged with commit hash.
+
+### 4. Test
+Runs container in isolated Docker network:
 
 ```bash
 docker run -d --name test-app --network app-net app-image
 ```
 
-Validates service readiness:
+Checks readiness:
 
 ```bash
 curl -sf http://test-app
 ```
 
-### 3. Deploy
-Replaces the running container on EC2.
+### 5. Push
+Pushes image to Amazon ECR:
+- Commit tag  
+- `latest` tag  
+
+### 6. Deploy
+- Uses AWS SSM with tag-based targeting  
+- Stops current container  
+- Pulls new image  
+- Starts updated container  
+- Saves previous image for rollback  
+
+### 7. Health Check
+Verified through ALB:
+
+```
+GET /health
+```
+
+Uses retry logic to allow for application startup.
+
+### 8. Rollback
+If health check fails:
+- Renames the current container (for traceability)
+- Stops broken container  
+- Restores previous image  
+- Restarts application  
 
 ---
 
 ## Networking
 
-- Custom Docker bridge network: **app-net**
-- Container-to-container communication via DNS:
+- Docker bridge network: `app-net`  
+- Internal DNS-based communication between containers  
 
-```bash
-curl http://test-app
-```
-
-> No reliance on localhost or static IPs
-
----
-
-## Health Checks
-
-- ALB continuously verifies application availability:
-
-```
-GET /
-User-Agent: ELB-HealthChecker/2.0
-```
-
-- Application returns **HTTP 200 OK** when healthy
+No reliance on localhost or static IPs.
 
 ---
 
 ## Limitations
 
-- Deployment runs on a **single EC2 instance**
-- Short downtime may occur during container replacement
-
-> Infrastructure supports scaling to multiple instances, but **zero-downtime requires a rolling or blue/green deployment strategy**
+- Deployment uses SSM without orchestration  
+- Rollback is local per instance  
+- No zero-downtime deployment  
+- ALB may route to instances during restart  
 
 ---
 
 ## Future Improvements
 
-- Multi-instance deployment behind ALB  
-- Rolling / Blue-Green deployment  
-- Kubernetes-based orchestration  
-- Dedicated `/health` endpoint  
+- Rolling / blue-green deployment  
+- Migration to ECS or Kubernetes  
+- Centralized rollback management  
+- Monitoring and alerting  
+- Zero-downtime deployment strategy  
 
 ---
 
 ## Key Concepts Demonstrated
 
-- Docker container lifecycle  
-- Docker networking (**bridge + DNS**)  
-- Jenkins running inside Docker with host socket access  
 - CI/CD pipeline design  
-- Health validation using `curl`  
-- Basic production deployment patterns  
+- Docker build, run, and networking  
+- Jenkins pipeline automation  
+- AWS integration (ECR, EC2, ALB, SSM)  
+- Terraform-based infrastructure provisioning  
+- Health-based deployment validation  
+- Basic rollback mechanism  
 
 ---
 
-## 💬 Notes
+## Notes
 
-- Containers are **ephemeral**
-- Each deployment replaces the previous version
-- Networking is handled via Docker networks (not host access)
-
----
-
-## 🎯 Interview Pitch
-
-> Built a CI/CD pipeline using Jenkins inside Docker, deploying containerized applications to AWS EC2 with ALB health checks and Docker-based service networking.
+- Containers are ephemeral  
+- Each deployment replaces the previous version  
+- Health checks validate real system behavior  
